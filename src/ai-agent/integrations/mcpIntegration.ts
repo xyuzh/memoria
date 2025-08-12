@@ -49,7 +49,8 @@ export class MCPIntegration {
           const embedding = await this.embeddingService.generateEmbedding(
             `${resource.name}: ${content}`
           );
-          interaction.embedding = embedding;
+          // Note: embedding would be added if Interaction interface supported it
+          // interaction.embedding = embedding;
 
           // Store in memory system (this would need to be exposed from agent)
           console.log(`📚 Stored MCP resource: ${resource.name}`);
@@ -100,8 +101,7 @@ export class MCPIntegration {
       
       // Store tool execution as episodic event
       await this.agent.processInput(
-        `Executed MCP tool: ${toolName}`,
-        `Tool result: ${JSON.stringify(result)}`,
+        `Executed MCP tool: ${toolName} with result: ${JSON.stringify(result)}`,
         {
           toolExecution: true,
           toolName,

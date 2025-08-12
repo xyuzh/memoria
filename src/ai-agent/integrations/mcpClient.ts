@@ -30,7 +30,8 @@ export class MCPClient {
     try {
       // This would connect to your teammate's MCP server
       const response = await fetch(`${this.serverUrl}/resources`);
-      return await response.json();
+      const data = await response.json() as { resources?: MCPResource[] };
+      return data.resources || [];
     } catch (error) {
       console.error('Error listing MCP resources:', error);
       return [];
@@ -45,7 +46,7 @@ export class MCPClient {
       const response = await fetch(`${this.serverUrl}/resources/${encodeURIComponent(uri)}`);
       return await response.text();
     } catch (error) {
-      console.error('Error reading MCP resource:', error);
+      console.error(`Error reading MCP resource ${uri}:`, error);
       return '';
     }
   }
@@ -56,7 +57,8 @@ export class MCPClient {
   async listTools(): Promise<MCPTool[]> {
     try {
       const response = await fetch(`${this.serverUrl}/tools`);
-      return await response.json();
+      const data = await response.json() as { tools?: MCPTool[] };
+      return data.tools || [];
     } catch (error) {
       console.error('Error listing MCP tools:', error);
       return [];
@@ -90,7 +92,8 @@ export class MCPClient {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
       });
-      return await response.json();
+      const data = await response.json() as { results?: MCPResource[] };
+      return data.results || [];
     } catch (error) {
       console.error('Error searching MCP resources:', error);
       return [];
