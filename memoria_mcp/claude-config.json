@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "firebase-memory": {
+      "command": "node",
+      "args": ["./mcp-client-adapter.js"],
+      "env": {
+        "FIREBASE_ENDPOINT": "https://us-central1-alpha-nice.cloudfunctions.net/mcpMemoryServer",
+        "FIREBASE_API_KEY": "AIzaSyAin2S8Y-oBvpnkRI9p9OoRFEpQ9ElUNNo",
+        "FIREBASE_AUTH_DOMAIN": "alpha-nice.firebaseapp.com",
+        "FIREBASE_PROJECT_ID": "alpha-nice",
+        "CUSTOM_AUTH_TOKEN": ""
+      }
+    }
+  }
+}

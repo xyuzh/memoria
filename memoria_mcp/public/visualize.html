@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Visualization - Memoria MCP</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .controls input, .controls select, .controls button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .controls button:hover {
+            background: #5a67d8;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .visualization {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .stats {
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f7f7f7;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .memory-details {
+            background: #f7f7f7;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        .memory-details h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .memory-content {
+            margin-bottom: 10px;
+        }
+
+        .memory-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .memory-text {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.4;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .concepts-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .concept-tag {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        .node-label {
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .link {
+            stroke-opacity: 0.6;
+        }
+
+        .tooltip {
+            position: absolute;
+            text-align: left;
+            padding: 10px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 Memory Visualization</h1>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search memories...">
+            <select id="limitSelect">
+                <option value="50">50 memories</option>
+                <option value="100" selected>100 memories</option>
+                <option value="200">200 memories</option>
+                <option value="500">500 memories</option>
+            </select>
+            <input type="date" id="startDate" placeholder="Start date">
+            <input type="date" id="endDate" placeholder="End date">
+            <button onclick="loadVisualization()">Refresh</button>
+            <button onclick="exportData('json')">Export JSON</button>
+            <button onclick="exportData('csv')">Export CSV</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="visualization">
+            <div id="graph"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Loading memories...</div>
+            </div>
+            <div class="tooltip" id="tooltip"></div>
+        </div>
+
+        <div class="sidebar">
+            <div class="stats" id="stats">
+                <h2>Statistics</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Total Memories</span>
+                    <span class="stat-value" id="totalMemories">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Concepts</span>
+                    <span class="stat-value" id="totalConcepts">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Unique Episodes</span>
+                    <span class="stat-value" id="uniqueEpisodes">-</span>
+                </div>
+            </div>
+
+            <div id="topConcepts">
+                <h3>Top Concepts</h3>
+                <div id="conceptsList"></div>
+            </div>
+
+            <div class="memory-details" id="memoryDetails" style="display: none;">
+                <h3>Memory Details</h3>
+                <div class="memory-content">
+                    <div class="memory-label">User Input</div>
+                    <div class="memory-text" id="userInput"></div>
+                </div>
+                <div class="memory-content">
+                    <div class="memory-label">Response</div>
+                    <div class="memory-text" id="response"></div>
+                </div>
+                <div class="memory-content">
+                    <div class="memory-label">Concepts</div>
+                    <div class="concepts-list" id="conceptsListDetail"></div>
+                </div>
+                <div class="memory-content">
+                    <div class="memory-label">Timestamp</div>
+                    <div class="memory-text" id="timestamp"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = window.location.origin;
+        let currentData = null;
+        let simulation = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVisualization();
+        });
+
+        async function loadVisualization() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            try {
+                const params = new URLSearchParams({
+                    limit: document.getElementById('limitSelect').value,
+                });
+
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+
+                const response = await fetch(`${API_BASE}/api/memories/visualize?${params}`, {
+                    headers: {
+                        'X-API-Key': localStorage.getItem('apiKey') || '',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load data: ${response.statusText}`);
+                }
+
+                currentData = await response.json();
+                renderVisualization(currentData);
+                updateStats(currentData.stats);
+                updateTopConcepts(currentData.stats.topConcepts);
+
+            } catch (error) {
+                console.error('Error loading visualization:', error);
+                showError(error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function renderVisualization(data) {
+            // Clear previous visualization
+            d3.select('#graph').selectAll('*').remove();
+
+            const container = document.getElementById('graph');
+            const width = container.clientWidth;
+            const height = container.clientHeight || 600;
+
+            const svg = d3.select('#graph')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Create zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 10])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            const g = svg.append('g');
+
+            // Create force simulation
+            simulation = d3.forceSimulation(data.nodes)
+                .force('link', d3.forceLink(data.edges)
+                    .id(d => d.id)
+                    .distance(100))
+                .force('charge', d3.forceManyBody()
+                    .strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide()
+                    .radius(d => d.size * 2));
+
+            // Create links
+            const link = g.append('g')
+                .selectAll('line')
+                .data(data.edges)
+                .enter().append('line')
+                .attr('class', 'link')
+                .attr('stroke', d => d.color || '#999')
+                .attr('stroke-width', d => Math.sqrt(d.weight * 5));
+
+            // Create nodes
+            const node = g.append('g')
+                .selectAll('g')
+                .data(data.nodes)
+                .enter().append('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+            // Add circles to nodes
+            node.append('circle')
+                .attr('r', d => d.size)
+                .attr('fill', d => d.color)
+                .on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip)
+                .on('click', showDetails);
+
+            // Add labels to nodes
+            node.append('text')
+                .attr('class', 'node-label')
+                .attr('dx', d => d.size + 3)
+                .attr('dy', 3)
+                .text(d => d.label ? d.label.substring(0, 30) : '')
+                .style('font-size', '10px')
+                .style('fill', '#333');
+
+            // Update positions on tick
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                node
+                    .attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            // Drag functions
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+
+        function showTooltip(event, d) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.innerHTML = `
+                <strong>${d.type === 'concept' ? 'Concept' : 'Memory'}</strong><br>
+                ${d.label || 'No label'}<br>
+                ${d.type === 'concept' ? `Count: ${d.count}` : `Time: ${new Date(d.timestamp).toLocaleString()}`}
+            `;
+            tooltip.style.left = event.pageX + 10 + 'px';
+            tooltip.style.top = event.pageY + 10 + 'px';
+            tooltip.style.opacity = 1;
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').style.opacity = 0;
+        }
+
+        function showDetails(event, d) {
+            if (d.type !== 'conversation') return;
+
+            document.getElementById('memoryDetails').style.display = 'block';
+            document.getElementById('userInput').textContent = d.content.userInput;
+            document.getElementById('response').textContent = d.content.response;
+            document.getElementById('timestamp').textContent = new Date(d.timestamp).toLocaleString();
+
+            const conceptsList = document.getElementById('conceptsListDetail');
+            conceptsList.innerHTML = '';
+            (d.concepts || []).forEach(concept => {
+                const tag = document.createElement('span');
+                tag.className = 'concept-tag';
+                tag.textContent = concept;
+                conceptsList.appendChild(tag);
+            });
+        }
+
+        function updateStats(stats) {
+            document.getElementById('totalMemories').textContent = stats.totalMemories || 0;
+            document.getElementById('totalConcepts').textContent = stats.totalConcepts || 0;
+            document.getElementById('uniqueEpisodes').textContent = stats.uniqueEpisodes || 0;
+        }
+
+        function updateTopConcepts(concepts) {
+            const container = document.getElementById('conceptsList');
+            container.innerHTML = '';
+
+            (concepts || []).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'stat-item';
+                div.innerHTML = `
+                    <span class="stat-label">${item.concept}</span>
+                    <span class="stat-value">${item.count}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function exportData(format) {
+            try {
+                const response = await fetch(`${API_BASE}/api/memories/export?format=${format}`, {
+                    headers: {
+                        'X-API-Key': localStorage.getItem('apiKey') || '',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Export failed: ${response.statusText}`);
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `memories.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+            } catch (error) {
+                console.error('Export error:', error);
+                showError(error.message);
+            }
+        }
+
+        function showError(message) {
+            const error = document.createElement('div');
+            error.className = 'error';
+            error.textContent = `Error: ${message}`;
+            document.querySelector('.header').appendChild(error);
+            setTimeout(() => error.remove(), 5000);
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loadVisualization();
+            }
+        });
+    </script>
+</body>
+</html>

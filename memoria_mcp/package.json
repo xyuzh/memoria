@@ -1,0 +1,48 @@
+{
+  "name": "memoria_mcp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "firebase:install": "cd functions && npm install",
+    "firebase:build": "cd functions && npm run build",
+    "firebase:serve": "firebase emulators:start",
+    "firebase:deploy": "npm run firebase:build && firebase deploy",
+    "firebase:deploy:functions": "npm run firebase:build && firebase deploy --only functions",
+    "firebase:deploy:hosting": "firebase deploy --only hosting",
+    "firebase:logs": "firebase functions:log",
+    "setup": "npm install && npm run firebase:install",
+    "mcp:local": "node mcp-client-adapter.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "firebase": "^12.1.0",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.4.0",
+    "openai": "5.12.2",
+    "uuid": "11.1.0",
+    "weaviate-client": "^3.8.0",
+    "weaviate-ts-client": "2.2.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.2.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}
