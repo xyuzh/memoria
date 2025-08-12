@@ -10,3 +10,7 @@
 - Jai <https://www.linkedin.com/in/jai-d>
 
 ![Selfie](images/selfie.png)
+
+
+Cluster: memoria-hackathon-cluster
+REST Endpoint: 52kvy1rz6yu15gjx9x5g.c0.us-west3.gcp.weaviate.cloud
