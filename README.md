@@ -5,6 +5,8 @@
 
 ## Chars
 
+### 1) Flow of data through the Memory Agent (architecture)
+
 ```mermaid
 flowchart TB
   U([User Input])
@@ -43,6 +45,8 @@ flowchart TB
   O -->|insert concepts| SHIMI
   O -->|upsert facts + add episode| KG
 ```
+
+### 2) Turn-by-turn sequence for handleInput(...)
 
 ```mermaid
 sequenceDiagram
