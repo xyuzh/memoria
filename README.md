@@ -44,6 +44,39 @@ flowchart TB
   O -->|upsert facts + add episode| KG
 ```
 
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as User
+  participant AM as AgentMemory
+  participant STM as STM
+  participant MTM as MTM
+  participant LPM as LPM
+  participant SHI as SHIMI
+  participant KG as Graphiti KG
+  participant LLM as LLM
+
+  U->>AM: userInput
+  AM->>STM: retrieve(userInput)
+  AM->>MTM: retrieve()
+  AM->>LPM: retrieve()
+  AM->>SHI: retrieveConcepts(userInput)
+  SHI-->>AM: concepts
+  AM->>KG: queryFacts(concepts, query)
+  KG-->>AM: facts
+  AM->>KG: searchEpisodes(concepts, query)
+  KG-->>AM: episodes
+  AM->>LLM: buildPrompt(...) and generate()
+  LLM-->>AM: response
+  AM->>STM: addDialog(userInput, response)
+  AM->>KG: upsertFacts(extracted)
+  AM->>SHI: insertEntity(...)
+  AM->>KG: addEpisode(body, ts)
+  AM->>MTM: updateHeat()
+  AM->>LPM: promoteIfHot()
+```
+
+
 ## Team Members
 
 - Huan <https://github.com/huan> Yay~
