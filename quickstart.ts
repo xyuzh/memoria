@@ -1,7 +1,7 @@
 import weaviate, { WeaviateClient } from 'weaviate-client';
 
 // Best practice: store your credentials in environment variables
-const weaviateUrl = process.env.WEAVIATE_URL as string;
+const weaviateUrl = '52kvy1rz6yu15gjx9x5g.c0.us-west3.gcp.weaviate.cloud';
 const weaviateApiKey = process.env.WEAVIATE_API_KEY as string;
 
 const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
