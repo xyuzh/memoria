@@ -1,4 +1,43 @@
-# memoria
+# Memoria - Unified Memory System
+
+A comprehensive TypeScript-based memory orchestration system that combines multiple memory architectures and AI agent capabilities.
+
+## Architecture Overview
+
+This unified memoria project integrates two complementary memory systems:
+
+### 1. **Original Memoria** (Main Branch)
+- Memory orchestrator with STM/MTM/LPM architecture
+- Graphiti-based Knowledge Graph (KG) integration
+- Heat-decay scheduling system
+- Episodic archive with temporal linking
+
+### 2. **AI Agent Memory System** (`/src/ai-agent/`)
+- Multi-tier memory with Short-Term, Mid/Long-Term, Semantic Tree, and Episodic layers
+- OpenAI integration for embeddings and chat completions
+- Weaviate vector database for semantic retrieval
+- MCP (Model Context Protocol) integration for external tools
+
+## Unified Architecture
+
+```text
+User Input → Memoria Unified System
+ ├─ Original Memoria (STM/MTM/LPM + Graphiti KG)
+ └─ AI Agent Memory System
+     ├─ Short-Term Memory (STM Buffer)
+     ├─ Mid/Long-Term Memory (Weaviate)
+     ├─ SHIMI Semantic Tree (Concepts & Relationships)
+     ├─ Episodic Memory (Events & Milestones)
+     └─ MCP Integration (External Tools & Data)
+Prompt Context ← Retrieved segments + SHIMI concepts + KG facts + episodes
+ → LLM → Response
+Then postprocessing updates:
+ ├→ STM→MTM heat promotion
+ ├→ SHIMI insertion
+ ├→ KG upsert facts & add episodic node
+ ├→ Weaviate update
+ ├→ MCP sync
+```
 
 ## Inspired by
 <https://chatgpt.com/share/689a9c79-c7e0-8004-a2e2-74d0d89a79f2>
@@ -7,7 +46,7 @@
 
 Here’s an enhanced TypeScript memory orchestrator module that seamlessly stitches together MemoryOS, SHIMI, a Graphiti-based Knowledge Graph (KG), and a fully integrated episodic archive. It includes a heat-decay-based scheduling system to promote mid‑term memory segments into long‑term store and episodic linking of conversations directly into the KG.
 
-1. 🏗️ Unified Architecture (Enhanced)
+1. Unified Architecture (Enhanced)
 
 ```text
 User Input → Memory Orchestrator Module
